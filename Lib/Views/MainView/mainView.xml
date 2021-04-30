@@ -1,0 +1,34 @@
+﻿<?xml version="1.0"?>
+<view icon="100" title="Commander" width="320" height="340">
+  <control progid="DecalControls.Notebook">
+     <page label="Players"> 
+       <control progid="DecalControls.FixedLayout" clipped="">
+        <control progid="DecalControls.StaticText" name="PlayersNameLabel" left="34" top="10" width="200" height="20" text="Name"/>
+        <control progid="DecalControls.List" name="EnemyList" left="10" top="30" width="300" height="125">
+          <column progid="DecalControls.IconColumn" name="Icon" fixedwidth="16" />
+          <column progid="DecalControls.TextColumn" name="Name" fixedwidth="100" />
+        </control>
+        <control progid="DecalControls.List" name="FriendlyList" left="10" top="165" width="300" height="125">
+          <column progid="DecalControls.IconColumn" name="Icon" fixedwidth="16" />
+          <column progid="DecalControls.TextColumn" name="Name" fixedwidth="100" />
+          <column progid="DecalControls.IconColumn" name="Icon" fixedwidth="16" />
+          <column progid="DecalControls.IconColumn" name="Icon" fixedwidth="16" />
+        </control>
+      </control>
+    </page>
+    <page label="Settings">
+      <control progid="DecalControls.FixedLayout" clipped="">
+        <control progid="DecalControls.CheckBox" name="DebugCheckBox" left="10" top="10" width="150" height="20" text="Debug" checked="true" />
+        <control progid="DecalControls.CheckBox" name="LogOnDeath" left="10" top="40" width="100" height="20" text="Log On Death" checked="true" />
+        <control progid="DecalControls.CheckBox" name="LogOnVitae" left="10" top="70" width="100" height="20" text="Log On Vitae" checked="true" />
+        <control progid="DecalControls.StaticText" name="VitaeLimitLabel" left="105" top="70" width="150" height="20" text="limit:"/>
+        <control progid="DecalControls.Edit" name="VitaeLimit" left="135" top="69" width="30" height="20" text="10" />
+        <control progid="DecalControls.CheckBox" name="Relog" left="10" top="100" width="100" height="20" text="Relog" checked="true" />
+        <control progid="DecalControls.StaticText" name="RelogDurationLabel" left="65" top="100" width="150" height="20" text="duration:"/>
+        <control progid="DecalControls.Edit" name="RelogDuration" left="115" top="99" width="30" height="20" text="5" />
+        <control progid="DecalControls.CheckBox" name="EnemySounds" left="10" top="130" width="100" height="20" text="EnemySounds" checked="true" />
+        <control progid="DecalControls.CheckBox" name="FriendlySounds" left="10" top="160" width="100" height="20" text="FriendlySounds" checked="true" />
+      </control>
+    </page>
+  </control>
+</view> 
