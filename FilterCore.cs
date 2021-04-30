@@ -30,17 +30,14 @@ namespace Commander
 
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
-            // Get assembly name
             var assemblyName = new AssemblyName(args.Name).Name + ".dll";
  
-            // Get resource name
             var resourceName = EmbeddedLibraries.FirstOrDefault(x => x.EndsWith(assemblyName));
             if (resourceName == null)
             {
                 return null;
             }
  
-            // Load assembly from resource
             using (var stream = ExecutingAssembly.GetManifestResourceStream(resourceName))
             {
                 var bytes = new byte[stream.Length];
@@ -70,7 +67,7 @@ namespace Commander
             try
             {
                 ConfigureServices(Host, Core);
-                _logger.Info("Startup");
+                _logger.Info("Startup()");
                 Core.PluginTermComplete += _container.Resolve<PluginTermCompleteController>().Init;
                 Core.FilterInitComplete += FilterInitComplete;
             } catch (Exception ex) { _logger.Error(ex); }
@@ -80,7 +77,7 @@ namespace Commander
         {
             try
             {
-                _logger.Info("ShutDown");
+                _logger.Info("ShutDown()");
                 Core.CharacterFilter.Login -= _container.Resolve<LoginController>().Init;
                 Core.CharacterFilter.LoginComplete -= _container.Resolve<LoginCompleteController>().Init;
                 Core.CharacterFilter.Death -= _container.Resolve<DeathController>().Init;
@@ -96,7 +93,7 @@ namespace Commander
         {
             try
             {
-                _logger.Info("FilterInitComplete");
+                _logger.Info("FilterInitComplete()");
                 Core.CharacterFilter.Login += _container.Resolve<LoginController>().Init;
                 Core.CharacterFilter.LoginComplete += _container.Resolve<LoginCompleteController>().Init;
                 Core.CharacterFilter.Death += _container.Resolve<DeathController>().Init;

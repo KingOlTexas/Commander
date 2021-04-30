@@ -32,7 +32,7 @@ namespace Commander.Lib.Services
 
         public LoginSession Init()
         {
-            _logger.Info("LoginSessionManager.Init");
+            _logger.Info("Init()");
 
             int monarchId;
             string monarchName;
