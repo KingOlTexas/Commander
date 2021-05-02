@@ -45,5 +45,15 @@ namespace Commander.Lib.Services
             return CoreManager.Current.CharacterFilter;
         }
 
+        public static void RequestId(int id)
+        {
+            CoreManager.Current.Actions.RequestId(id);
+        }
+
+        public static void SelectSelf()
+        {
+            CoreManager.Current.Actions.SelectItem(GetSelf().Id);
+        }
+
     }
 }

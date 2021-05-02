@@ -30,12 +30,13 @@ namespace Commander.Lib.Views
         private HudTextBox _relogDuration;
         private HudList _enemyListView;
         private HudList _friendlyListView;
+        private List<PlayerIcon> _playerIcons;
         private List<DebuffObj> _debuffObjects;
-        private List<LowHealthObj> _lowHealthObjects;
+        private PlayerIcon.Factory _playerIconFactory;
+        //private List<LowHealthObj> _lowHealthObjects;
 
-        const int FriendlyIcon = 0x60011F9; // Green Circle
-        const int EnemyIcon = 100689142;	// Undead Slayer Icon
-        const int HealthIcon = 100670841; // heal icon
+        const int FriendlyIcon = 100675625;	
+        const int EnemyIcon = 100690759;
 
         public MainView(
             Logger logger,
@@ -44,6 +45,7 @@ namespace Commander.Lib.Views
             SettingsManager settingsManager,
             DebuffObj.Factory debuffObjFactory,
             LowHealthObj.Factory lowHealthObjFactory,
+            PlayerIcon.Factory playerIconfactory,
             Debugger debugger) : base(logger.Scope("MainView"), globals)
         {
             _logger = logger;
@@ -52,6 +54,7 @@ namespace Commander.Lib.Views
             _settingsManager = settingsManager;
             _debuffObjFactory = debuffObjFactory;
             _lowHealthObjFactory = lowHealthObjFactory;
+            _playerIconFactory = playerIconfactory;
             _globals = globals;
         }
 
@@ -90,7 +93,8 @@ namespace Commander.Lib.Views
                 }
 
                 _debuffObjects = new List<DebuffObj>();
-                _lowHealthObjects = new List<LowHealthObj>();
+                _playerIcons = new List<PlayerIcon>();
+                //_lowHealthObjects = new List<LowHealthObj>();
                 RegisterEvents();
             } catch (Exception ex) { _logger.Error(ex); }
         }
@@ -177,26 +181,9 @@ namespace Commander.Lib.Views
         {
             try
             {
-                LowHealthObj lowHealthObject = _lowHealthObjects.Find(obj => player.Id == obj.Id);
-
-                if (lowHealthObject != null && !player.LowHealth)
-                {
-                    _logger.Info($"Disposing: LowHealthObject");
-                    lowHealthObject.D3DObject.Visible = false;
-                    lowHealthObject.D3DObject.Dispose();
-                    _lowHealthObjects.Remove(lowHealthObject);
-                }
-
-                if (lowHealthObject == null && player.LowHealth)
-                {
-                    D3DObj obj = CoreManager.Current.D3DService.MarkObjectWithIcon(player.Id, HealthIcon);
-                    obj.PBounce = 2f;
-                    obj.HBounce = 0.5f;
-                    obj.AnimationPhaseOffset = 0.5f;
-                    obj.Scale(0.75f);
-                    LowHealthObj lowHealthObj = _lowHealthObjFactory(player.Id, obj);
-                    _lowHealthObjects.Add(lowHealthObj);
-                }
+                PlayerIcon playerIcon = _playerIcons.Find(icon => icon.Id == player.Id);
+                float fade = player.LowHealth ? 0.2f : 0;
+                playerIcon.Icon.PFade = fade;
 
                 Predicate<DebuffObj> debuffed = obj => obj.Id == player.Id;
                 foreach (var obj in _debuffObjects.FindAll(debuffed))
@@ -314,6 +301,12 @@ namespace Commander.Lib.Views
 
         private void _processPlayerRemove(Player player)
         {
+            PlayerIcon playerIcon = _playerIcons.Find(icon => icon.Id == player.Id);
+
+            if (playerIcon != null) 
+                playerIcon.Icon.Dispose();
+
+            _playerIcons.Remove(playerIcon);
             HudList playersView = player.Enemy ? _enemyListView : _friendlyListView;
             for (int i = 0; i < playersView.RowCount; i++)
             {
@@ -339,12 +332,18 @@ namespace Commander.Lib.Views
             bool enemy = player.Enemy;
             HudList playersView = enemy ? _enemyListView : _friendlyListView;
             int icon = enemy ? EnemyIcon : FriendlyIcon;
+            D3DObj playerIcon = CoreManager.Current.D3DService.MarkObjectWithIcon(player.Id, icon);
+            playerIcon.Scale(0.5f);
+            playerIcon.Color = enemy ? Color.OrangeRed.ToArgb() : Color.LightGreen.ToArgb();
+            playerIcon.OrientToCamera(true);
+            playerIcon.Color2 = enemy ? Color.Violet.ToArgb() : Color.LimeGreen.ToArgb();
+
+            _playerIcons.Add(_playerIconFactory(player.Id, playerIcon));
 
             HudList.HudListRowAccessor row = playersView.AddRow();
             ((HudPictureBox)row[0]).Image = icon;
             ((HudStaticText)row[1]).Text = player.Name;
-            ((HudStaticText)row[1]).TextColor = Color.Red;
-
+            ((HudStaticText)row[1]).TextColor = enemy ? Color.Red : Color.LightGreen;
 
             if (!enemy)
             {
@@ -433,7 +432,28 @@ namespace Commander.Lib.Views
         {
             base.Dispose();
             UnRegisterEvents();
+            _clearIcons();
+            _clearDebuffObjects();
         }
 
+        private void _clearDebuffObjects()
+        {
+            foreach(DebuffObj debuffObj in _debuffObjects)
+            {
+                debuffObj.D3DObject.Dispose();
+            }
+
+            _debuffObjects.Clear();
+        }
+
+        private void _clearIcons()
+        {
+            foreach(PlayerIcon playerIcon in _playerIcons)
+            {
+                playerIcon.Icon.Dispose();
+            }
+
+            _playerIcons.Clear();
+        }
     }
 }

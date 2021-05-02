@@ -2,6 +2,7 @@
 using Commander.Lib.Services;
 using Decal.Adapter;
 using System;
+using System.Collections.Generic;
 
 namespace Commander.Lib.Controllers
 {
@@ -15,13 +16,14 @@ namespace Commander.Lib.Controllers
         private PlayerManager _playerManager;
         private Logger _logger;
         private DebuffInformation.Factory _debuffInformationFactory;
+        private List<int> _messages = new List<int>();
 
         public ServerDispatchControllerImpl(
             PlayerManager playerManager,
             DebuffInformation.Factory debuffInformationFactory,
             Logger logger)
         {
-            _logger = logger;
+            _logger = logger.Scope("ServerDispatchController");
             _playerManager = playerManager;
             _debuffInformationFactory = debuffInformationFactory;
 
@@ -29,8 +31,14 @@ namespace Commander.Lib.Controllers
 
         public void Init(object sender, NetworkMessageEventArgs e)
         {
-            try
-            {
+            try {
+                int messageType = e.Message.Type;
+
+                if (messageType == 63408 && e.Message.Value<int>("event") == 201)
+                {
+                    //_logger.Info($"MessageType: {messageType}");
+                }
+
                 if (e.Message.Type == 0xF755) // ApplyVisual, used to detect debuffs
                 {
                     _processApplyVisual(e);
@@ -87,37 +95,50 @@ namespace Commander.Lib.Controllers
 
         }
 
-        private void _processUpdateHealth(NetworkMessageEventArgs e)
-        {
-            int id = e.Message.Value<int>("object");
-            double hp = e.Message.Value<double>("health") * 100;
-            Player player = _playerManager.Get(id);
-
-            if (player == null)
-                return;
-
-            if (hp > 40 && player.LowHealth)
-            {
-                player.LowHealth = false;
-                _playerManager.Update(player.Id, player);
-            }
-
-            if (hp < 40 && !player.LowHealth)
-            {
-                player.LowHealth = true;
-                _playerManager.Update(player.Id, player);
-            }
-
-        }
-
         private void _processGameEvent(NetworkMessageEventArgs e)
         {
             int gameEvent = e.Message.Value<int>("event");
 
-            if (gameEvent == 0x01C0) // Update Health
-                _processUpdateHealth(e);
+            if (gameEvent == 201) // IdentifyObject
+                _processIndentifyObject(e);
+                
         }
 
+        private void _processIndentifyObject(NetworkMessageEventArgs e)
+        {
+            int id = e.Message.Value<int>("object");
+
+            if (!WorldObjectService.IsValidObject(id))
+                return;
+
+            if ((e.Message.Value<int>("flags") & 256) <= 0)
+                return;
+
+            Player player = _playerManager.Get(id);
+
+            if (player != null)
+            {
+                _processPlayerIdentified(e, player);
+            }
+        }
+
+        private void _processPlayerIdentified(NetworkMessageEventArgs e,  Player player)
+        {
+            int health = e.Message.Value<int>("health");
+            int healthMax = e.Message.Value<int>("healthMax");
+
+            if (health <= 0 || healthMax <= 0)
+                return;
+
+            decimal pct = ((decimal)health / (decimal)healthMax) * (decimal)100;
+
+            if (pct < 50)
+                player.LowHealth = true;
+            else
+                player.LowHealth = false;
+
+            _playerManager.Update(player.Id, player);
+        }
     }
 
 

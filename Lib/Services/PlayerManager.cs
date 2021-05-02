@@ -1,5 +1,7 @@
 ﻿using Commander.Lib.Models;
 using Commander.Models;
+using Decal.Adapter;
+using Decal.Adapter.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -48,8 +50,13 @@ namespace Commander.Lib.Services
             _logger = logger.Scope("PlayerManager");
             _loginSessionManager = loginSessionManager;
             _settingsManager = settingsManager;
+            _ghostObjectTimerInit();
+        }
+
+        private void _ghostObjectTimerInit()
+        {
             _ghostObjectTimer = new Timer();
-            _ghostObjectTimer.Interval = 1000 * 60 * 3;
+            _ghostObjectTimer.Interval = 1000 * 60 * 1;
             _ghostObjectTimer.AutoReset = true;
             _ghostObjectTimer.Elapsed += _ghostObjectTimer_Elapsed;
             _ghostObjectTimer.Start();
@@ -154,6 +161,7 @@ namespace Commander.Lib.Services
             if (session == null)
                 return;
 
+            WorldObjectService.RequestId(player.Id);
             if (player.Enemy)
             {
                 _logger.WriteToChat($"Enemy Added: {player.Name}");
@@ -200,7 +208,6 @@ namespace Commander.Lib.Services
             return null;
         }
 
-        /* https://stackoverflow.com/a/18946392 */
         private Stream GetResourceStream(string resourceName)
         {
             Assembly assembly = Assembly.GetExecutingAssembly();

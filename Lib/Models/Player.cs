@@ -30,6 +30,19 @@ namespace Commander.Lib.Models
         }
     }
 
+    public class PlayerIcon
+    {
+        public readonly int Id;
+        public readonly D3DObj Icon;
+        public PlayerIcon(int id, D3DObj icon)
+        {
+            Id = id;
+            Icon = icon;
+        }
+
+        public delegate PlayerIcon Factory(int id, D3DObj icon);
+    }
+
     public class DebuffInformation
     {
         public int Spell { get; set; }

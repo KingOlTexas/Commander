@@ -13,6 +13,7 @@ namespace Commander.Lib.Models.Bindings
             builder.RegisterType<DebuffInformation>();
             builder.RegisterType<DebuffObj>();
             builder.RegisterType<LowHealthObj>();
+            builder.RegisterType<PlayerIcon>();
         }
     }
 }
