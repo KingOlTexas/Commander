@@ -13,6 +13,7 @@ namespace Commander.Lib.Services.Bindings
             builder.RegisterType<RelogManagerImpl>().As<RelogManager>().SingleInstance();
             builder.RegisterType<DebuffManagerImpl>().As<DebuffManager>().SingleInstance();
             builder.RegisterType<GlobalProvider>().SingleInstance();
+            builder.RegisterType<DeathManagerImpl>().As<DeathManager>().SingleInstance();
             builder.RegisterType<LoggerImpl>().As<Logger>();
         }
     }

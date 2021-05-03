@@ -82,7 +82,6 @@ namespace Commander.Lib.Controllers
                 _handleDebugger();
                 _handleRelogger();
                 _mainView.Init();
-                RegisterEvents();
                 _vitaeTimer.Start();
                 _handleCachedPlayers();
             } catch (Exception ex) { _logger.Error(ex); }
@@ -130,19 +129,9 @@ namespace Commander.Lib.Controllers
                 _debugger.Hide();
         }
 
-        private void RegisterEvents()
-        {
-            CoreManager.Current.EchoFilter.ServerDispatch += _serverDispatchController.Init;
-        }
-
-        private void UnregisterEvents()
-        {
-            CoreManager.Current.EchoFilter.ServerDispatch -= _serverDispatchController.Init;
-        }
-
         private void VitaeTimerChecker(object sender, ElapsedEventArgs e)
         {
-            _logger.Info("LoginCompleteController.VitaeTimerChecker[EVENT]");
+            _logger.Info("VitaeTimerChecker[EVENT]");
             Settings settings = _settingsManager.Settings;
             bool logOnVit = settings.LogOnVitae;
             int limit = settings.VitaeLimit;
@@ -170,7 +159,6 @@ namespace Commander.Lib.Controllers
             _logger.Info("Clear()");
             _playerManager.Clear();
             _vitaeTimer.Stop();
-            UnregisterEvents();
         }
 
     }

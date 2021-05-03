@@ -76,7 +76,10 @@ namespace Commander.Lib.Controllers
                 return;
 
             if (_playerManager.Get(woId) != null)
+            {
+                //WorldObjectService.RequestId(woId);
                 return;
+            }
 
             double distance = WorldObjectService.GetDistanceFromPlayer(woId, id);
             int playerDistance = Convert.ToInt32(distance);
