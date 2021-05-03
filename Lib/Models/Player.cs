@@ -30,17 +30,16 @@ namespace Commander.Lib.Models
         }
     }
 
-    public class DebuffInformation
+    public class PlayerIcon
     {
-        public int Spell { get; set; }
-        public DateTime StartTime;
-        public delegate DebuffInformation Factory(int spell, DateTime startTime);
-
-        public DebuffInformation(int spell, DateTime startTime)
+        public readonly int Id;
+        public readonly D3DObj Icon;
+        public PlayerIcon(int id, D3DObj icon)
         {
-            Spell = spell;
-            StartTime = startTime;
+            Id = id;
+            Icon = icon;
         }
 
+        public delegate PlayerIcon Factory(int id, D3DObj icon);
     }
 }

@@ -1,5 +1,7 @@
 ﻿using Commander.Lib.Models;
 using Commander.Models;
+using Decal.Adapter;
+using Decal.Adapter.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -48,11 +50,15 @@ namespace Commander.Lib.Services
             _logger = logger.Scope("PlayerManager");
             _loginSessionManager = loginSessionManager;
             _settingsManager = settingsManager;
+            _ghostObjectTimerInit();
+        }
+
+        private void _ghostObjectTimerInit()
+        {
             _ghostObjectTimer = new Timer();
-            _ghostObjectTimer.Interval = 1000 * 60 * 3;
+            _ghostObjectTimer.Interval = 1000 * 60 * 1;
             _ghostObjectTimer.AutoReset = true;
             _ghostObjectTimer.Elapsed += _ghostObjectTimer_Elapsed;
-            _ghostObjectTimer.Start();
         }
 
         public void CachePlayer(int id)
@@ -68,7 +74,12 @@ namespace Commander.Lib.Services
 
         private void _processGhostObjects()
         {
-            int currentId = _loginSessionManager.Session.Id;
+            int currentId = WorldObjectService.GetSelf().Id;
+
+            if (_players.Count == 0)
+            {
+                _ghostObjectTimer.Stop();
+            }
 
             foreach (KeyValuePair<int, Player> player in _players)
             {
@@ -109,6 +120,7 @@ namespace Commander.Lib.Services
         protected virtual void OnPlayerAdded(Player player)
         {
             PlayerAdded?.Invoke(this, player);
+            _ghostObjectTimer.Start();
         }
 
         public void Update(int id, Player player)
@@ -137,6 +149,7 @@ namespace Commander.Lib.Services
             _logger.Info("Clear()");
             _players.Clear();
             ClearCache();
+            _ghostObjectTimer.Stop();
         }
 
         public void Add(Player player)
@@ -154,6 +167,7 @@ namespace Commander.Lib.Services
             if (session == null)
                 return;
 
+            WorldObjectService.RequestId(player.Id);
             if (player.Enemy)
             {
                 _logger.WriteToChat($"Enemy Added: {player.Name}");
@@ -200,7 +214,6 @@ namespace Commander.Lib.Services
             return null;
         }
 
-        /* https://stackoverflow.com/a/18946392 */
         private Stream GetResourceStream(string resourceName)
         {
             Assembly assembly = Assembly.GetExecutingAssembly();

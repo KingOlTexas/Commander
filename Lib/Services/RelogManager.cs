@@ -15,10 +15,6 @@ namespace Commander.Lib.Services
 
     public class RelogManagerImpl : RelogManager
     {
-
-        /* this is used to send text to border of client window (when a user relogs a timer is displayed) */
-
-        /* used to handle keyboard/mouse events (click enter game when relogger countdown finishes) */
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern bool PostMessage(IntPtr hhwnd, uint msg, IntPtr wparam, UIntPtr lparam);
 

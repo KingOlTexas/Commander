@@ -1,4 +1,5 @@
 ﻿using Decal.Adapter.Wrappers;
+using System;
 
 namespace Commander.Lib.Models
 {
@@ -16,17 +17,36 @@ namespace Commander.Lib.Models
         IMPERIL = 56
     }
 
-    public class LowHealthObj
+    public class DebuffInformation
     {
-        public int Id;
-        public D3DObj D3DObject;
+        public int Spell { get; set; }
+        public DateTime StartTime;
+        public delegate DebuffInformation Factory(int spell, DateTime startTime);
 
-        public delegate LowHealthObj Factory(int id, D3DObj d3dObj);
-
-        public LowHealthObj(int id, D3DObj d3dObj)
+        public DebuffInformation(int spell, DateTime startTime)
         {
-            Id = id;
-            D3DObject = d3dObj;
+            Spell = spell;
+            StartTime = startTime;
+        }
+
+        public DebuffIcon? MapDebuffToIcon(int spell)
+        {
+            if (spell == 44)
+                return DebuffIcon.FIRE;
+            if (spell == 46)
+                return DebuffIcon.PIERCE;
+            if (spell == 48)
+                return DebuffIcon.BLADE;
+            if (spell == 50)
+                return DebuffIcon.ACID;
+            if (spell == 52)
+                return DebuffIcon.COLD;
+            if (spell == 54)
+                return DebuffIcon.LIGHTNING;
+            if (spell == 56)
+                return DebuffIcon.IMPERIL;
+
+            return null;
         }
     }
 

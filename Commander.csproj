@@ -79,6 +79,7 @@
     <Compile Include="FilterCore.cs" />
     <Compile Include="Lib\Services\Bindings\ServicesModule.cs" />
     <Compile Include="Lib\Services\DebuffManager.cs" />
+    <Compile Include="Lib\Services\DeathManager.cs" />
     <Compile Include="Lib\Services\PlayerManager.cs" />
     <Compile Include="Lib\Services\RelogManager.cs" />
     <Compile Include="Lib\Services\WorldObjectService.cs" />

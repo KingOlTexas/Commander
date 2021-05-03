@@ -45,5 +45,29 @@ namespace Commander.Lib.Services
             return CoreManager.Current.CharacterFilter;
         }
 
+        public static void RequestId(int id)
+        {
+            CoreManager.Current.Actions.RequestId(id);
+        }
+
+        public static void SelectItem(int id)
+        {
+            CoreManager.Current.Actions.SelectItem(id);
+        }
+        public static void CastSpell(int spell, int playerId)
+        {
+            CoreManager.Current.Actions.CastSpell(spell, playerId);
+        }
+
+        public static void CastHeal(int playerId)
+        {
+            if (WorldObjectService.IsSpellKnown(4310))
+            {
+                CastSpell(4310, playerId);
+            } else
+            {
+                CastSpell(2072, playerId);
+            }
+        }
     }
 }
