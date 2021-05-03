@@ -50,8 +50,6 @@ namespace Commander.Lib.Services
 
                 if (_debuffedPlayers.Contains(player))
                     Update(player);
-                else
-                    Add(player);
 
                 Start();
 

@@ -42,18 +42,4 @@ namespace Commander.Lib.Models
 
         public delegate PlayerIcon Factory(int id, D3DObj icon);
     }
-
-    public class DebuffInformation
-    {
-        public int Spell { get; set; }
-        public DateTime StartTime;
-        public delegate DebuffInformation Factory(int spell, DateTime startTime);
-
-        public DebuffInformation(int spell, DateTime startTime)
-        {
-            Spell = spell;
-            StartTime = startTime;
-        }
-
-    }
 }

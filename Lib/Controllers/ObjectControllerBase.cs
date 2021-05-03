@@ -77,7 +77,7 @@ namespace Commander.Lib.Controllers
 
             if (_playerManager.Get(woId) != null)
             {
-                WorldObjectService.RequestId(woId);
+                //WorldObjectService.RequestId(woId);
                 return;
             }
 

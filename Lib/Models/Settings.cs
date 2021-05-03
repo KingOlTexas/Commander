@@ -10,6 +10,9 @@
         public bool FriendlySounds = true;
         public int RelogDuration = 5;
         public int VitaeLimit = 10;
+        public bool EnemyIcon = true;
+        public bool FriendlyIcon = true;
+        public int IconSize = 2;
 
         public delegate Settings Factory();
     }

@@ -16,14 +16,17 @@ namespace Commander.Lib.Controllers
         private Logger _logger;
         private LoginSessionManager _loginSessionManager;
         private SettingsManager _settingsManager;
+        private DeathManager _deathManager;
 
         public DeathControllerImpl(
             Logger logger,
             SettingsManager settingsManager,
+            DeathManager deathManager,
             LoginSessionManager loginSessionManager)
         {
             _logger = logger.Scope("DeathController");
             _loginSessionManager = loginSessionManager;
+            _deathManager = deathManager;
             _settingsManager = settingsManager;
         }
 
@@ -31,33 +34,7 @@ namespace Commander.Lib.Controllers
         {
             try
             {
-                LoginSession session = _loginSessionManager.Session;
-                Settings settings = _settingsManager.Settings;
-
-                _logger.Info("DeathController.Init");
-
-                if (session == null || settings == null)
-                {
-                    _logger.WriteToChat("Session or Settings not loaded before death occured, logging out");
-                    CoreManager.Current.Actions.Logout();
-                    return;
-                }
-
-                if (settings.LogOnDeath)
-                {
-                    _logger.WriteToChat("Logging off, due to LogOnDeath enabled");
-                    _logger.WriteToWindow(e.Text);
-                    CoreManager.Current.Actions.Logout();
-                }
-
-                if (settings.LogOnVitae && session.Vitae >= settings.VitaeLimit)
-                {
-                    string message = $"Logging off, due to vitae limit of {settings.VitaeLimit.ToString()} being reached";
-                    _logger.WriteToChat(message);
-                    _logger.WriteToWindow(message);
-                    CoreManager.Current.Actions.Logout();
-                }
-
+                _deathManager.ProcessDeathFromOther(e.Text);
             } catch (Exception ex) { _logger.Error(ex); }
         }
     }

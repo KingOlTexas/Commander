@@ -18,13 +18,14 @@ namespace Commander.Lib.Views
         private SettingsManager _settingsManager;
         private PlayerManager _playerManager;
         private DebuffObj.Factory _debuffObjFactory;
-        private LowHealthObj.Factory _lowHealthObjFactory;
         private Settings _settings;
         private HudCheckBox _debug;
         private HudCheckBox _logOnDeath;
         private HudCheckBox _logOnVitae;
         private HudCheckBox _enemySounds;
         private HudCheckBox _friendlySounds;
+        private HudCheckBox _friendlyIcon;
+        private HudCheckBox _enemyIcon;
         private HudCheckBox _relog;
         private HudTextBox _vitaeLimit;
         private HudTextBox _relogDuration;
@@ -33,7 +34,6 @@ namespace Commander.Lib.Views
         private List<PlayerIcon> _playerIcons;
         private List<DebuffObj> _debuffObjects;
         private PlayerIcon.Factory _playerIconFactory;
-        //private List<LowHealthObj> _lowHealthObjects;
 
         const int FriendlyIcon = 100675625;	
         const int EnemyIcon = 100690759;
@@ -44,7 +44,6 @@ namespace Commander.Lib.Views
             PlayerManager playerManager,
             SettingsManager settingsManager,
             DebuffObj.Factory debuffObjFactory,
-            LowHealthObj.Factory lowHealthObjFactory,
             PlayerIcon.Factory playerIconfactory,
             Debugger debugger) : base(logger.Scope("MainView"), globals)
         {
@@ -53,7 +52,6 @@ namespace Commander.Lib.Views
             _playerManager = playerManager;
             _settingsManager = settingsManager;
             _debuffObjFactory = debuffObjFactory;
-            _lowHealthObjFactory = lowHealthObjFactory;
             _playerIconFactory = playerIconfactory;
             _globals = globals;
         }
@@ -75,6 +73,8 @@ namespace Commander.Lib.Views
                 _friendlyListView = (HudList)view["FriendlyList"];
                 _enemySounds = (HudCheckBox)view["EnemySounds"];
                 _friendlySounds = (HudCheckBox)view["FriendlySounds"];
+                _friendlyIcon = (HudCheckBox)view["FriendlyIcon"];
+                _enemyIcon = (HudCheckBox)view["EnemyIcon"];
 
                 _settings = _settingsManager.Settings;
 
@@ -86,6 +86,8 @@ namespace Commander.Lib.Views
                 _relogDuration.Text = _settings.RelogDuration.ToString();
                 _enemySounds.Checked = _settings.EnemySounds;
                 _friendlySounds.Checked = _settings.FriendlySounds;
+                _friendlyIcon.Checked = _settings.FriendlyIcon;
+                _enemyIcon.Checked = _settings.EnemyIcon;
 
                 foreach (KeyValuePair<int, Player> entry in _playerManager.PlayersInstance())
                 {
@@ -94,7 +96,6 @@ namespace Commander.Lib.Views
 
                 _debuffObjects = new List<DebuffObj>();
                 _playerIcons = new List<PlayerIcon>();
-                //_lowHealthObjects = new List<LowHealthObj>();
                 RegisterEvents();
             } catch (Exception ex) { _logger.Error(ex); }
         }
@@ -115,13 +116,57 @@ namespace Commander.Lib.Views
             _friendlyListView.Click += _friendlyListView_Click;
             _enemySounds.Change += _enemySounds_Change;
             _friendlySounds.Change += _friendlySounds_Change;
+            _enemyIcon.Change += _enemyIcon_Change;
+            _friendlyIcon.Change += _friendlyIcon_Change;
+        }
+
+        private void _friendlyIcon_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                _logger.WriteToChat($"FriendlyIconChange[EVENT]: {_friendlyIcon.Checked}");
+                _settingsManager.Settings.FriendlyIcon = _friendlyIcon.Checked;
+                _settingsManager.Write();
+                
+                foreach(PlayerIcon icon in _playerIcons)
+                {
+                    Player player = _playerManager.Get(icon.Id);
+                    
+                    if (player != null && !player.Enemy)
+                    {
+                        icon.Icon.Visible = _settings.FriendlyIcon;
+                    }
+                }
+
+            } catch (Exception ex) { _logger.Error(ex); }
+        }
+
+        private void _enemyIcon_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                _logger.WriteToChat($"EnemyIconChange[EVENT]: {_enemyIcon.Checked}");
+                _settingsManager.Settings.EnemyIcon = _enemyIcon.Checked;
+                _settingsManager.Write();
+
+                foreach(PlayerIcon icon in _playerIcons)
+                {
+                    Player player = _playerManager.Get(icon.Id);
+                    
+                    if (player != null && player.Enemy)
+                    {
+                        icon.Icon.Visible = _settings.EnemyIcon;
+                    }
+                }
+
+            } catch (Exception ex) { _logger.Error(ex); }
         }
 
         private void _friendlySounds_Change(object sender, EventArgs e)
         {
             try
             {
-                _logger.WriteToChat($"MainView.FriendlySoundsChange[EVENT]: {_friendlySounds.Checked}");
+                _logger.WriteToChat($"FriendlySoundsChange[EVENT]: {_friendlySounds.Checked}");
                 _settingsManager.Settings.FriendlySounds = _friendlySounds.Checked;
                 _settingsManager.Write();
 
@@ -132,7 +177,7 @@ namespace Commander.Lib.Views
         {
             try
             {
-                _logger.WriteToChat($"MainView.EnemeySoundsChange[EVENT]: {_enemySounds.Checked}");
+                _logger.WriteToChat($"EnemeySoundsChange[EVENT]: {_enemySounds.Checked}");
                 _settingsManager.Settings.EnemySounds = _enemySounds.Checked;
                 _settingsManager.Write();
 
@@ -155,26 +200,8 @@ namespace Commander.Lib.Views
             _friendlyListView.Click -= _friendlyListView_Click;
             _enemySounds.Change -=_enemySounds_Change;
             _friendlySounds.Change -= _enemySounds_Change;
-        }
-
-        private DebuffIcon? _mapDebuffToIcon(int spell)
-        {
-            if (spell == 44)
-                return DebuffIcon.FIRE;
-            if (spell == 46)
-                return DebuffIcon.PIERCE;
-            if (spell == 48)
-                return DebuffIcon.BLADE;
-            if (spell == 50)
-                return DebuffIcon.ACID;
-            if (spell == 52)
-                return DebuffIcon.COLD;
-            if (spell == 54)
-                return DebuffIcon.LIGHTNING;
-            if (spell == 56)
-                return DebuffIcon.IMPERIL;
-
-            return null;
+            _friendlyIcon.Change -= _friendlyIcon_Change;
+            _enemyIcon.Change -= _enemyIcon_Change;
         }
 
         private void _playerManager_PlayerUpdated(object sender, Player player)
@@ -197,9 +224,9 @@ namespace Commander.Lib.Views
                 foreach(DebuffInformation info in player.Debuffs)
                 {
                     int spell = info.Spell;
-                    if (_mapDebuffToIcon(spell) != null && _globals.Host.Actions.IsValidObject(player.Id))
+                    if (info.MapDebuffToIcon(spell) != null && WorldObjectService.IsValidObject(player.Id))
                     {
-                        int icon = (int)_mapDebuffToIcon(spell);
+                        int icon = (int)info.MapDebuffToIcon(spell);
                         D3DObj obj = CoreManager.Current.D3DService.MarkObjectWithIcon(player.Id, icon);
                         float dz = _globals.Host.Actions.Underlying.ObjectHeight(player.Id) + ((float)0 * 0.5f);
                         obj.Scale(0.5f);
@@ -244,23 +271,6 @@ namespace Commander.Lib.Views
             } catch (Exception ex) { _logger.Error(ex); }
         }
 
-
-        private void castSpell(int spell, int playerId)
-        {
-            CoreManager.Current.Actions.CastSpell(spell, playerId);
-        }
-
-        private void castHeal(int playerId)
-        {
-            if (WorldObjectService.IsSpellKnown(4310))
-            {
-                castSpell(4310, playerId);
-            } else
-            {
-                castSpell(2072, playerId);
-            }
-        }
-
         private void _processListView_Clicked(HudList listView, int row, int col)
         {
             try
@@ -279,12 +289,13 @@ namespace Commander.Lib.Views
 
                 if (col == 2)
                 {
-                    castHeal(player.Id);
+                    WorldObjectService.CastHeal(player.Id);
                 }
 
                 if (col == 3)
                 {
-                    castSpell(2082, player.Id);
+                    
+                   WorldObjectService.CastSpell(2082, player.Id);
                 }
 
             } catch (Exception ex) { _logger.Error(ex); }
@@ -332,18 +343,17 @@ namespace Commander.Lib.Views
             bool enemy = player.Enemy;
             HudList playersView = enemy ? _enemyListView : _friendlyListView;
             int icon = enemy ? EnemyIcon : FriendlyIcon;
-            D3DObj playerIcon = CoreManager.Current.D3DService.MarkObjectWithIcon(player.Id, icon);
-            playerIcon.Scale(0.5f);
-            playerIcon.Color = enemy ? Color.OrangeRed.ToArgb() : Color.LightGreen.ToArgb();
+            D3DObj playerIcon = CoreManager.Current.D3DService.MarkObjectWithShape(player.Id, D3DShape.Sphere, Color.Red.ToArgb());
+            playerIcon.Scale(enemy ? 0.3f : 0.3f);
+            playerIcon.Anchor(player.Id, 0.2f, 0.0f, 0.0f, 2.5f);
+            playerIcon.Color = enemy ? Color.FromArgb(200, Color.Red).ToArgb() : Color.FromArgb(220, Color.LightBlue).ToArgb();
             playerIcon.OrientToCamera(true);
-            playerIcon.Color2 = enemy ? Color.Violet.ToArgb() : Color.LimeGreen.ToArgb();
-
             _playerIcons.Add(_playerIconFactory(player.Id, playerIcon));
 
             HudList.HudListRowAccessor row = playersView.AddRow();
             ((HudPictureBox)row[0]).Image = icon;
             ((HudStaticText)row[1]).Text = player.Name;
-            ((HudStaticText)row[1]).TextColor = enemy ? Color.Red : Color.LightGreen;
+            ((HudStaticText)row[1]).TextColor = enemy ? Color.Red : Color.LightBlue;
 
             if (!enemy)
             {

@@ -85,6 +85,7 @@ namespace Commander
                 Core.WorldFilter.MoveObject -= _container.Resolve<MoveObjectController>().Init;
                 Core.WorldFilter.ReleaseObject -= _container.Resolve<ReleaseObjectController>().Init;
                 Core.PluginTermComplete -= _container.Resolve<PluginTermCompleteController>().Init;
+                Core.EchoFilter.ServerDispatch -= _container.Resolve<ServerDispatchController>().Init;
                 Core.FilterInitComplete -= FilterInitComplete;
             } catch (Exception ex) { _logger.Error(ex); }
         }
@@ -100,6 +101,7 @@ namespace Commander
                 Core.WorldFilter.CreateObject += _container.Resolve<CreateObjectController>().Init;
                 Core.WorldFilter.MoveObject += _container.Resolve<MoveObjectController>().Init;
                 Core.WorldFilter.ReleaseObject += _container.Resolve<ReleaseObjectController>().Init;
+                Core.EchoFilter.ServerDispatch += _container.Resolve<ServerDispatchController>().Init;
             } catch (Exception ex) { _logger.Error(ex); }
         }
     }

@@ -50,10 +50,24 @@ namespace Commander.Lib.Services
             CoreManager.Current.Actions.RequestId(id);
         }
 
-        public static void SelectSelf()
+        public static void SelectItem(int id)
         {
-            CoreManager.Current.Actions.SelectItem(GetSelf().Id);
+            CoreManager.Current.Actions.SelectItem(id);
+        }
+        public static void CastSpell(int spell, int playerId)
+        {
+            CoreManager.Current.Actions.CastSpell(spell, playerId);
         }
 
+        public static void CastHeal(int playerId)
+        {
+            if (WorldObjectService.IsSpellKnown(4310))
+            {
+                CastSpell(4310, playerId);
+            } else
+            {
+                CastSpell(2072, playerId);
+            }
+        }
     }
 }

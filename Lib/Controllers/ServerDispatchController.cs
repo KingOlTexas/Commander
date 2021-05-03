@@ -1,5 +1,6 @@
 ﻿using Commander.Lib.Models;
 using Commander.Lib.Services;
+using Commander.Models;
 using Decal.Adapter;
 using System;
 using System.Collections.Generic;
@@ -15,16 +16,22 @@ namespace Commander.Lib.Controllers
     {
         private PlayerManager _playerManager;
         private Logger _logger;
+        private SettingsManager _settingsManager;
+        private DeathManager _deathManager;
         private DebuffInformation.Factory _debuffInformationFactory;
         private List<int> _messages = new List<int>();
 
         public ServerDispatchControllerImpl(
             PlayerManager playerManager,
+            SettingsManager settingsManager,
+            DeathManager deathManager,
             DebuffInformation.Factory debuffInformationFactory,
             Logger logger)
         {
             _logger = logger.Scope("ServerDispatchController");
             _playerManager = playerManager;
+            _settingsManager = settingsManager;
+            _deathManager = deathManager;
             _debuffInformationFactory = debuffInformationFactory;
 
         }
@@ -49,7 +56,7 @@ namespace Commander.Lib.Controllers
                     _processGameEvent(e);
                 }
 
-                if (e.Message.Type == 0x19E) // PlayerKilled
+                if (e.Message.Type == 414) // PlayerKilled
                 {
                     _processPlayerKilled(e);
                 }
@@ -59,8 +66,13 @@ namespace Commander.Lib.Controllers
 
         private void _processPlayerKilled(NetworkMessageEventArgs e)
         {
+            _logger.Info("_processPlayerKilled()");
             int killed = e.Message.Value<int>("killed");
             int killer = e.Message.Value<int>("killer");
+            string deathMessage = e.Message.Value<string>("text");
+
+            if (WorldObjectService.IsValidObject(killer) && WorldObjectService.IsPlayer(killer))
+                _deathManager.ProcessPkDeath(killer, killed, deathMessage);
         }
 
         private void _processApplyVisual(NetworkMessageEventArgs e)
@@ -80,19 +92,23 @@ namespace Commander.Lib.Controllers
 
             if (player != null)
             {
-                int index = player.Debuffs.FindIndex(obj => obj.Spell == effect);
-                if (index != -1)
-                {
-                    player.Debuffs[index].StartTime = DateTime.Now;
-                }
-                else
-                {
-                    player.Debuffs.Add(_debuffInformationFactory(effect, DateTime.Now));
-                }
+                _processApplyVisualOnPlayer(player, effect);
+            }
+        }
 
-                _playerManager.Update(player.Id, player);
+        private void _processApplyVisualOnPlayer(Player player, int effect)
+        {
+            int index = player.Debuffs.FindIndex(obj => obj.Spell == effect);
+            if (index != -1)
+            {
+                player.Debuffs[index].StartTime = DateTime.Now;
+            }
+            else
+            {
+                player.Debuffs.Add(_debuffInformationFactory(effect, DateTime.Now));
             }
 
+            _playerManager.Update(player.Id, player);
         }
 
         private void _processGameEvent(NetworkMessageEventArgs e)
@@ -100,7 +116,8 @@ namespace Commander.Lib.Controllers
             int gameEvent = e.Message.Value<int>("event");
 
             if (gameEvent == 201) // IdentifyObject
-                _processIndentifyObject(e);
+                return;
+                //_processIndentifyObject(e);
                 
         }
 

@@ -59,7 +59,6 @@ namespace Commander.Lib.Services
             _ghostObjectTimer.Interval = 1000 * 60 * 1;
             _ghostObjectTimer.AutoReset = true;
             _ghostObjectTimer.Elapsed += _ghostObjectTimer_Elapsed;
-            _ghostObjectTimer.Start();
         }
 
         public void CachePlayer(int id)
@@ -75,7 +74,12 @@ namespace Commander.Lib.Services
 
         private void _processGhostObjects()
         {
-            int currentId = _loginSessionManager.Session.Id;
+            int currentId = WorldObjectService.GetSelf().Id;
+
+            if (_players.Count == 0)
+            {
+                _ghostObjectTimer.Stop();
+            }
 
             foreach (KeyValuePair<int, Player> player in _players)
             {
@@ -116,6 +120,7 @@ namespace Commander.Lib.Services
         protected virtual void OnPlayerAdded(Player player)
         {
             PlayerAdded?.Invoke(this, player);
+            _ghostObjectTimer.Start();
         }
 
         public void Update(int id, Player player)
@@ -144,6 +149,7 @@ namespace Commander.Lib.Services
             _logger.Info("Clear()");
             _players.Clear();
             ClearCache();
+            _ghostObjectTimer.Stop();
         }
 
         public void Add(Player player)
